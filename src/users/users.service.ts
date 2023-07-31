@@ -44,7 +44,9 @@ export class UsersService {
     return await this.userModel.updateOne({ _id: updateUserDto._id }, { ...updateUserDto });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string) {
+    return this.userModel.deleteOne({
+      _id: id
+    })
   }
 }
