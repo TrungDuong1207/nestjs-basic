@@ -1,61 +1,109 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User as UserM, UserDocument } from './schemas/user.schema';
 import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { IUser } from './users.interface';
+import aqp from 'api-query-params';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
 
-  constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>) { }
+  constructor(@InjectModel(UserM.name) private userModel: SoftDeleteModel<UserDocument>) { }
 
   getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
     const hash = hashSync(password, salt);
     return hash
   }
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, user: IUser) {
+    const isExist = this.userModel.findOne({email: createUserDto.email});
+    if(isExist) {
+        throw new BadRequestException(`the email ${createUserDto.email} da ton tai tren he thong`);
+    }
     const hashPassword = this.getHashPassword(createUserDto.password)
-    let user = await this.userModel.create({
-      email: createUserDto.email,
+    let newUser = await this.userModel.create({
+      ...createUserDto,
       password: hashPassword,
-      name: createUserDto.name
+      createdBy: {
+        _id: user._id,
+        email: user.email
+      }
     })
-    return user;
+    return newUser;
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(curentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+    delete filter.page;
+    delete filter.limit;
+
+    let offset = (+curentPage - 1) * (+limit);
+    let defaultLimit = +limit ? +limit : 10;
+    const totalItems = (await this.userModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.userModel.find(filter, '-password')
+      .skip(offset)
+      .limit(defaultLimit)
+      // @ts-ignore: Unreachable code error
+      .sort(sort)
+      .populate(population)
+      .exec();
+
+    return {
+      meta: {
+        current: curentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
   }
 
   findOne(id: string) {
-    try {
-      return this.userModel.findOne({
-        _id: id
-      });
-    } catch (e) {
-      return "loi user"
-    }
-
+    if (!mongoose.Types.ObjectId.isValid(id)) return 'not found user'
+    return this.userModel.findOne({ _id: id }, '-password');
+    //cách 2
+    // return this.userModel.findOne({ _id: id }).select("-password");
   }
+
   findOneByUsername(username: string) {
     return this.userModel.findOne({
       email: username
     });
   }
 
-  isValidPassword(password: string, hash: string){
+  isValidPassword(password: string, hash: string) {
     return compareSync(password, hash);
   }
-  
-  async update(updateUserDto: UpdateUserDto) {
-    return await this.userModel.updateOne({ _id: updateUserDto._id }, { ...updateUserDto });
+
+  async update(id: string, updateUserDto: UpdateUserDto, user: IUser) {
+    return await this.userModel.updateOne(
+      { _id: id },
+      {
+        ...updateUserDto,
+        updatedBy: {
+          _id: user._id,
+          email: user.email
+        }
+      }
+    );
   }
 
-  remove(id: string) {
+  async remove(id: string, user: IUser) {
+    await this.userModel.updateOne(
+      { _id: id },
+      {
+        deletedBy: {
+          _id: user._id,
+          email: user.email
+        }
+      });
     return this.userModel.softDelete({
       _id: id
     })

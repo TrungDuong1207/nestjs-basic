@@ -1,14 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/users.interface';
+import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { User } from 'src/users/schemas/user.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-
+        @InjectModel(User.name) private userModel: Model<User>
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -39,5 +43,19 @@ export class AuthService {
             email,
             role
         };
+    }
+
+    async register(registerUserDto: RegisterUserDto) {
+        const isExist = this.userModel.findOne({email: registerUserDto.email});
+        if(isExist) {
+            throw new BadRequestException(`the email ${registerUserDto.email} da ton tai tren he thong`);
+        }
+        const hashPassword = this.usersService.getHashPassword(registerUserDto.password)
+        let user = await this.userModel.create({
+            ...registerUserDto,
+            password: hashPassword,
+            role: "USER"
+        })
+        return user;
     }
 }
