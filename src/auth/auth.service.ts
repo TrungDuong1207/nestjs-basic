@@ -8,7 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
-import { Response } from 'express';
+import { Response, response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -128,5 +128,11 @@ export class AuthService {
         } catch (e) {
             throw new BadRequestException(`Refresh token khong hop le. vui long login`)
         }
+    }
+
+    logout = async (response: Response, user: IUser) => {
+        await this.usersService.updateUserToken("", user._id);
+        response.clearCookie("refresh_token");
+        return "ok"
     }
 }
