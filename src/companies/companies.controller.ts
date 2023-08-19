@@ -10,6 +10,7 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) { }
 
   @Post()
+  @ResponseMessage("Create a new company success")
   create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
     return this.companiesService.create(createCompanyDto, user);
   }
