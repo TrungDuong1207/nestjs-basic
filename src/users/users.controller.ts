@@ -7,7 +7,7 @@ import { IUser } from './users.interface';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   @ResponseMessage("Create a new user success")
@@ -18,17 +18,17 @@ export class UsersController {
   @Get()
   @ResponseMessage("Fetch with company with paginate")
   findAll(
-    @Query("page") curentPage: string,
-    @Query("limit") limit: string,
+    @Query("current") curentPage: string,
+    @Query("pageSize") limit: string,
     @Query() qs: string,
-    ) {
+  ) {
     return this.usersService.findAll(+curentPage, +limit, qs);
   }
 
   @Get(":id")
   @Public()
   @ResponseMessage("Fetch user by ID")
-  findOne( @Param('id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
@@ -38,7 +38,7 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @User() user: IUser
-    ) {
+  ) {
     return this.usersService.update(id, updateUserDto, user);
   }
 

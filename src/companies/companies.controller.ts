@@ -7,7 +7,7 @@ import { IUser } from 'src/users/users.interface';
 
 @Controller('companies')
 export class CompaniesController {
-  constructor(private readonly companiesService: CompaniesService) {}
+  constructor(private readonly companiesService: CompaniesService) { }
 
   @Post()
   create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
@@ -17,10 +17,10 @@ export class CompaniesController {
   @Get()
   @ResponseMessage("Fetch with company with paginate")
   findAll(
-    @Query("page") curentPage: string,
-    @Query("limit") limit: string,
+    @Query("current") curentPage: string,
+    @Query("pageSize") limit: string,
     @Query() qs: string,
-    ) {
+  ) {
     return this.companiesService.findAll(+curentPage, +limit, qs);
   }
 
@@ -32,7 +32,7 @@ export class CompaniesController {
   @Patch(":id")
   update(
     @Param('id') id: string,
-    @Body() updateCompanyDto: UpdateCompanyDto, 
+    @Body() updateCompanyDto: UpdateCompanyDto,
     @User() user: IUser) {
     return this.companiesService.update(id, updateCompanyDto, user);
   }

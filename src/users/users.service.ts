@@ -20,9 +20,9 @@ export class UsersService {
     return hash
   }
   async create(createUserDto: CreateUserDto, user: IUser) {
-    const isExist = this.userModel.findOne({email: createUserDto.email});
-    if(isExist) {
-        throw new BadRequestException(`the email ${createUserDto.email} da ton tai tren he thong`);
+    const isExist = this.userModel.findOne({ email: createUserDto.email });
+    if (isExist) {
+      throw new BadRequestException(`the email ${createUserDto.email} da ton tai tren he thong`);
     }
     const hashPassword = this.getHashPassword(createUserDto.password)
     let newUser = await this.userModel.create({
@@ -38,8 +38,8 @@ export class UsersService {
 
   async findAll(curentPage: number, limit: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
-    delete filter.page;
-    delete filter.limit;
+    delete filter.current;
+    delete filter.pageSize;
 
     let offset = (+curentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
@@ -109,14 +109,14 @@ export class UsersService {
     })
   }
 
-  updateUserToken = async (refreshToken: string, _id: string) =>{
+  updateUserToken = async (refreshToken: string, _id: string) => {
     return await this.userModel.updateOne(
-      {_id},
-      {refreshToken}
+      { _id },
+      { refreshToken }
     )
   }
 
-  findUserByToken = async (refreshToken: string) =>{
-    return await this.userModel.findOne({refreshToken})
+  findUserByToken = async (refreshToken: string) => {
+    return await this.userModel.findOne({ refreshToken })
   }
 }
