@@ -3,30 +3,33 @@ import mongoose, { HydratedDocument } from 'mongoose';
 
 export type CompanyDocument = HydratedDocument<Company>;
 
-@Schema({timestamps: true})
+@Schema({ timestamps: true })
 export class Company {
     @Prop()
     name: string;
 
-    @Prop({requied: true})
+    @Prop({ requied: true })
     address: string;
 
     @Prop()
     description: string;
 
-    @Prop({type: Object})
+    @Prop()
+    logo: string;
+
+    @Prop({ type: Object })
     createdBy: {
         _id: mongoose.Schema.Types.ObjectId;
         email: string;
     };
 
-    @Prop({type: Object})
+    @Prop({ type: Object })
     updatedBy: {
         _id: mongoose.Schema.Types.ObjectId;
         email: string;
     };
 
-    @Prop({type: Object})
+    @Prop({ type: Object })
     deletedBy: {
         _id: mongoose.Schema.Types.ObjectId;
         email: string;
