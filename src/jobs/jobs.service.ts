@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/users.interface';
@@ -33,7 +33,7 @@ export class JobsService {
         const totalItems = (await this.jobModel.find(filter)).length;
         const totalPages = Math.ceil(totalItems / defaultLimit);
 
-        const result = await this.jobModel.find(filter, '-password')
+        const result = await this.jobModel.find(filter)
             .skip(offset)
             .limit(defaultLimit)
             // @ts-ignore: Unreachable code error
@@ -53,7 +53,9 @@ export class JobsService {
     }
 
     findOne(id: string) {
-        if (!mongoose.Types.ObjectId.isValid(id)) return 'not found job'
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return new BadRequestException(`not found job with id=${id}`)
+        }
         return this.jobModel.findOne({ _id: id });
     }
 

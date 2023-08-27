@@ -66,7 +66,9 @@ export class UsersService {
   }
 
   findOne(id: string) {
-    if (!mongoose.Types.ObjectId.isValid(id)) return 'not found user'
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return new BadRequestException(`not found user with id=${id}`)
+    }
     return this.userModel.findOne({ _id: id }, '-password');
     //cách 2
     // return this.userModel.findOne({ _id: id }).select("-password");
