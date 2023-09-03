@@ -17,7 +17,7 @@ export class JobsController {
 
   @Get()
   @Public()
-  @ResponseMessage("Fetch with job with paginate")
+  @ResponseMessage("Fetch job with paginate")
   findAll(
     @Query("current") curentPage: string,
     @Query("pageSize") limit: string,
