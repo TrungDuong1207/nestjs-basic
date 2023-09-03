@@ -45,6 +45,7 @@ export class RolesService {
       // @ts-ignore: Unreachable code error
       .sort(sort)
       .populate(population)
+      .select(projection as any)
       .exec();
 
     return {
@@ -62,13 +63,15 @@ export class RolesService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return new BadRequestException(`not found role with id=${id}`)
     }
-    return this.roleModel.findOne({ _id: id });
+    return (this.roleModel.findById({ _id: id }).populate({
+      path: "permissions",
+      select: { _id: 1, apiPath: 1, name: 1, method: 1 }
+    }));
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
-    let checkName = await this.roleModel.findOne({ name: updateRoleDto.name });
-    if (checkName) {
-      throw new BadRequestException(`the name da ton tai`);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return new BadRequestException(`not found role with id=${id}`)
     }
     return await this.roleModel.updateOne(
       { _id: id },
@@ -83,6 +86,10 @@ export class RolesService {
   }
 
   async remove(id: string, user: IUser) {
+    const foundRole = await this.roleModel.findById(id)
+    if (foundRole.name === "ADMIN") {
+      throw new BadRequestException(`khong the xoa ROLE admin`)
+    }
     await this.roleModel.updateOne(
       { _id: id },
       {

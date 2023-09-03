@@ -73,8 +73,19 @@ export class ResumesService {
     return this.resumeModel.findOne({ _id: id });
   }
 
-  findAllByUser(user: IUser) {
-    const findCVs = this.resumeModel.find({ userId: user._id });
+  async findAllByUser(user: IUser) {
+    const findCVs = await this.resumeModel.find({ userId: user._id })
+      .sort("-createdAt")
+      .populate([
+        {
+          path: "companyId",
+          select: { name: 1 }
+        },
+        {
+          path: "jobId",
+          select: { name: 1 }
+        }
+      ]);
     return findCVs
   }
 
