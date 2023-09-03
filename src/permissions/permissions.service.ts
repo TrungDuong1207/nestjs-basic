@@ -13,9 +13,8 @@ export class PermissionsService {
     constructor(@InjectModel(Permission.name) private permissionModel: SoftDeleteModel<PermissionDocument>) { }
 
     async create(createPermissionDto: CreatePermissionDto, user: IUser) {
-        const isExistMethod = this.permissionModel.findOne({ method: createPermissionDto.method });
-        const isExistApiPath = this.permissionModel.findOne({ apiPath: createPermissionDto.apiPath });
-
+        const isExistMethod = await this.permissionModel.findOne({ method: createPermissionDto.method });
+        const isExistApiPath = await this.permissionModel.findOne({ apiPath: createPermissionDto.apiPath });
         if (isExistMethod && isExistApiPath) {
             throw new BadRequestException(`the method and api path da ton tai tren he thong`);
         }
