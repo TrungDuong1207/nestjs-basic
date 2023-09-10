@@ -65,7 +65,7 @@ export class RolesService {
     }
     return (this.roleModel.findById({ _id: id }).populate({
       path: "permissions",
-      select: { _id: 1, apiPath: 1, name: 1, method: 1 }
+      select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 }
     }));
   }
 
@@ -87,7 +87,7 @@ export class RolesService {
 
   async remove(id: string, user: IUser) {
     const foundRole = await this.roleModel.findById(id)
-    if (foundRole.name === "ADMIN") {
+    if (foundRole.name === "ADMIN_ROlE") {
       throw new BadRequestException(`khong the xoa ROLE admin`)
     }
     await this.roleModel.updateOne(

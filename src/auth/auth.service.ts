@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
-import { JwtService } from '@nestjs/jwt';
-import { IUser } from 'src/users/users.interface';
-import { RegisterUserDto } from 'src/users/dto/create-user.dto';
-import { User } from 'src/users/schemas/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Response } from 'express';
+import { Model } from 'mongoose';
 import ms from 'ms';
-import { Response, response } from 'express';
+import { RolesService } from 'src/roles/roles.service';
+import { User } from 'src/users/schemas/user.schema';
+import { IUser } from 'src/users/users.interface';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +16,8 @@ export class AuthService {
         private usersService: UsersService,
         private jwtService: JwtService,
         private configService: ConfigService,
-        @InjectModel(User.name) private userModel: Model<User>
+        private rolesService: RolesService,
+
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -24,14 +25,20 @@ export class AuthService {
         if (user) {
             const isValid = this.usersService.isValidPassword(pass, user.password);
             if (isValid) {
-                return user
+                const userRole = user.role as unknown as { _id: string; name: string }
+                const temp = await this.rolesService.findOne(userRole._id);
+                const objUser = {
+                    ...user.toObject(),
+                    permissions: temp?.permissions ?? []
+                }
+                return objUser
             }
         }
         return null;
     }
 
     async login(user: IUser, response: Response) {
-        const { _id, name, email, role } = user;
+        const { _id, name, email, role, permissions } = user;
         const payload = {
             sub: "token login",
             iss: "from server",
@@ -56,23 +63,10 @@ export class AuthService {
                 _id,
                 name,
                 email,
-                role
+                role,
+                permissions
             }
         };
-    }
-
-    async register(registerUserDto: RegisterUserDto) {
-        const isExist = this.userModel.findOne({ email: registerUserDto.email });
-        if (isExist) {
-            throw new BadRequestException(`the email ${registerUserDto.email} da ton tai tren he thong`);
-        }
-        const hashPassword = this.usersService.getHashPassword(registerUserDto.password)
-        let user = await this.userModel.create({
-            ...registerUserDto,
-            password: hashPassword,
-            role: "USER"
-        })
-        return user;
     }
 
     createRefreshToken = (payload) => {
@@ -103,7 +97,10 @@ export class AuthService {
                 };
                 const refresh_token = this.createRefreshToken(payload)
 
-                await this.usersService.updateUserToken(refresh_token, _id.toString())
+                await this.usersService.updateUserToken(refresh_token, _id.toString());
+
+                const userRole = user.role as unknown as { _id: string; name: string }
+                const temp = await this.rolesService.findOne(userRole._id);
 
                 //set refresh token as cookies
                 response.clearCookie("refresh_token");
@@ -118,7 +115,8 @@ export class AuthService {
                         _id,
                         name,
                         email,
-                        role
+                        role,
+                        permissions: temp?.permissions ?? []
                     }
                 };
 

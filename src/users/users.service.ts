@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User as UserM, UserDocument } from './schemas/user.schema';
@@ -8,11 +8,19 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from './users.interface';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
+import { USER_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class UsersService {
 
-  constructor(@InjectModel(UserM.name) private userModel: SoftDeleteModel<UserDocument>) { }
+  constructor(
+    @InjectModel(UserM.name)
+    private userModel: SoftDeleteModel<UserDocument>,
+
+    @InjectModel(Role.name)
+    private roleModel: SoftDeleteModel<RoleDocument>
+  ) { }
 
   getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
@@ -78,7 +86,7 @@ export class UsersService {
   findOneByUsername(username: string) {
     return this.userModel.findOne({
       email: username
-    }).populate({ path: "role", select: { name: 1, permissions: 1 } });
+    }).populate({ path: "role", select: { name: 1 } });
   }
 
   isValidPassword(password: string, hash: string) {
@@ -128,5 +136,25 @@ export class UsersService {
 
   findUserByToken = async (refreshToken: string) => {
     return await this.userModel.findOne({ refreshToken })
+      .populate({
+        path: "role",
+        select: { name: 1 }
+      })
+  }
+
+  async register(registerUserDto: RegisterUserDto) {
+    const isExist = this.userModel.findOne({ email: registerUserDto.email });
+    if (isExist) {
+      throw new BadRequestException(`the email ${registerUserDto.email} da ton tai tren he thong`);
+    }
+
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE })
+    const hashPassword = this.getHashPassword(registerUserDto.password)
+    let newRegister = await this.userModel.create({
+      ...registerUserDto,
+      password: hashPassword,
+      role: userRole?._id
+    })
+    return newRegister;
   }
 }

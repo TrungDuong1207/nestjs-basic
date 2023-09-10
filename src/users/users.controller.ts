@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { IUser } from './users.interface';
@@ -46,5 +46,12 @@ export class UsersController {
   @ResponseMessage("Delete a user success")
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.usersService.remove(id, user);
+  }
+
+  @Public()
+  @Post('/register')
+  @ResponseMessage("Register a new user success")
+  handleRegister(@Body() registerUserDto: RegisterUserDto) {
+    return this.usersService.register(registerUserDto)
   }
 }
