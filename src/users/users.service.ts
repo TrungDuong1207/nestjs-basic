@@ -111,7 +111,7 @@ export class UsersService {
       return new BadRequestException(`not found user with id=${id}`)
     }
     const foundUser = await this.userModel.findById(id)
-    if (foundUser.email === "admin@gmail.com") {
+    if (foundUser && foundUser.email === "admin@gmail.com") {
       throw new BadRequestException(`khong the xoa tai khoan admin@gmail.com`)
     }
     await this.userModel.updateOne(
@@ -143,13 +143,13 @@ export class UsersService {
   }
 
   async register(registerUserDto: RegisterUserDto) {
-    const isExist = this.userModel.findOne({ email: registerUserDto.email });
+    const isExist = await this.userModel.findOne({ email: registerUserDto.email });
     if (isExist) {
       throw new BadRequestException(`the email ${registerUserDto.email} da ton tai tren he thong`);
     }
 
-    const userRole = await this.roleModel.findOne({ name: USER_ROLE })
-    const hashPassword = this.getHashPassword(registerUserDto.password)
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE });
+    const hashPassword = this.getHashPassword(registerUserDto.password);
     let newRegister = await this.userModel.create({
       ...registerUserDto,
       password: hashPassword,

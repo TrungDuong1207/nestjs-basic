@@ -1,12 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
-import { Model } from 'mongoose';
 import ms from 'ms';
 import { RolesService } from 'src/roles/roles.service';
-import { User } from 'src/users/schemas/user.schema';
 import { IUser } from 'src/users/users.interface';
 import { UsersService } from 'src/users/users.service';
 
@@ -27,6 +24,12 @@ export class AuthService {
             if (isValid) {
                 const userRole = user.role as unknown as { _id: string; name: string }
                 const temp = await this.rolesService.findOne(userRole._id);
+
+                if (temp instanceof BadRequestException) {
+                    // Xử lý lỗi ở đây nếu cần
+                    return null;
+                }
+    
                 const objUser = {
                     ...user.toObject(),
                     permissions: temp?.permissions ?? []
@@ -109,6 +112,11 @@ export class AuthService {
                     maxAge: ms(this.configService.get<string>("JWT_REFRESH_EXPIRE")),//miligiay  
                 });
 
+                if (temp instanceof BadRequestException) {
+                    // Xử lý lỗi ở đây nếu cần
+                    return null;
+                }
+    
                 return {
                     access_token: this.jwtService.sign(payload),
                     user: {
