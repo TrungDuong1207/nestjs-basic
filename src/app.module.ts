@@ -15,9 +15,10 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { DatabasesModule } from './databases/databases.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
 import { MailModule } from './mail/mail.module';
-
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     // MongooseModule.forRoot('mongodb+srv://trung:Trung142696!@cluster0.z5ztbaa.mongodb.net/test'),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],

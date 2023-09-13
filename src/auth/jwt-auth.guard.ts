@@ -2,7 +2,7 @@ import { ExecutionContext, ForbiddenException, Injectable, UnauthorizedException
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from 'src/decorator/customize';
+import { IS_PUBLIC_KEY, IS_PUBLIC_PERMISSION } from 'src/decorator/customize';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -24,6 +24,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     //hàm này lấy thông tin từ jwt.strategy
     handleRequest(err, user, info, context: ExecutionContext) {
         const request: Request = context.switchToHttp().getRequest();
+        
+        const isSKipPermission = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_PERMISSION, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
             throw err || new UnauthorizedException("Token khong hơp le or khong co bearrer token ở header");
@@ -40,7 +46,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             targetEndpoint === permission.apiPath
         )
         if(targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
-        if (!isExist) {
+        if (!isExist && !isSKipPermission) {
             throw new ForbiddenException("bạn không có quyền để truy cập endpoint này")
         }
         return user;
