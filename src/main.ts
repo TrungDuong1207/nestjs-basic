@@ -9,7 +9,8 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
 import cookieParser from 'cookie-parser';
-
+import helmet from 'helmet';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,16 +19,14 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    // forbidNonWhitelisted: true
-  }));
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+  }));
 
   //config cookie 
   app.use(cookieParser());
@@ -49,6 +48,34 @@ async function bootstrap() {
       credentials: true
     }
   );
+
+  //cobfig helmet
+  app.use(helmet());
+
+  //config swagger
+  const config = new DocumentBuilder()
+    .setTitle('NestJS APIs Doccunment')
+    .setDescription('All module API')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token',
+    )
+    .addSecurityRequirements('token')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    }
+  }
+  );
+
   await app.listen(configService.get<string>('PORT'));
 
   if (module.hot) {
