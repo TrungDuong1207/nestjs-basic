@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, UseFilters, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { CreateFileDto } from './dto/create-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Public, ResponseMessage } from 'src/decorator/customize';
 import { ApiTags } from '@nestjs/swagger';
+import { HttpExceptionFilter } from 'src/core/http-exception.filter';
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
@@ -14,23 +15,29 @@ export class FilesController {
   @Post('upload')
   @ResponseMessage("upload single file")
   @UseInterceptors(FileInterceptor('fileUpload'))
-  uploadFile(
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: /^(image\/jpeg|image\/png|image\/gif|application\/pdf|doc|docx|text\/palin|)$/i,
-        })
-        .addMaxSizeValidator({
-          maxSize: 1024 * 1024 //kb = 1mb
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-        }),
-    ) file: Express.Multer.File) {
+  @UseFilters(new HttpExceptionFilter())
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
     return {
       fileName: file.filename
     }
   }
+  // uploadFile(
+  //   @UploadedFile(
+  //     new ParseFilePipeBuilder()
+  //       .addFileTypeValidator({
+  //         fileType: /^(image\/jpeg|image\/png|image\/gif|application\/pdf|doc|docx|text\/palin|)$/i,
+  //       })
+  //       .addMaxSizeValidator({
+  //         maxSize: 1024 * 1024 //kb = 1mb
+  //       })
+  //       .build({
+  //         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+  //       }),
+  //   ) file: Express.Multer.File) {
+  //   return {
+  //     fileName: file.filename
+  //   }
+  // }
 
   @Get()
   findAll() {

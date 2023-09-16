@@ -25,7 +25,7 @@ async function bootstrap() {
   app.setViewEngine('ejs');
 
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
+    whitelist: true, //khi update file truyen thua tham so se validate
   }));
 
   //config cookie 
