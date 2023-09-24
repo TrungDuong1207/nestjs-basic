@@ -24,12 +24,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     //hàm này lấy thông tin từ jwt.strategy
     handleRequest(err, user, info, context: ExecutionContext) {
         const request: Request = context.switchToHttp().getRequest();
-        
         const isSKipPermission = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_PERMISSION, [
             context.getHandler(),
             context.getClass(),
         ]);
-        
+
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
             throw err || new UnauthorizedException("Token khong hơp le or khong co bearrer token ở header");
@@ -45,7 +44,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             &&
             targetEndpoint === permission.apiPath
         )
-        if(targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
+        if (targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
         if (!isExist && !isSKipPermission) {
             throw new ForbiddenException("bạn không có quyền để truy cập endpoint này")
         }
