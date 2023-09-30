@@ -23,8 +23,9 @@ export class ResumesController {
     @Query("current") curentPage: string,
     @Query("pageSize") limit: string,
     @Query() qs: string,
+    @User() user: IUser,
   ) {
-    return this.resumesService.findAll(+curentPage, +limit, qs);
+    return this.resumesService.findAll(+curentPage, +limit, qs, user);
   }
 
   @Get(":id")

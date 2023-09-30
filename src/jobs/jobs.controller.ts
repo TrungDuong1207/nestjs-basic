@@ -28,6 +28,17 @@ export class JobsController {
     return this.jobsService.findAll(+curentPage, +limit, qs);
   }
 
+  @Get("/admin")
+  @ResponseMessage("Fetch job with paginate")
+  findAllJobHR(
+    @Query("current") curentPage: string,
+    @Query("pageSize") limit: string,
+    @Query() qs: string,
+    @User() user: IUser
+  ) {
+    return this.jobsService.findAllJobHR(+curentPage, +limit, qs, user);
+  }
+
   @Get(":id")
   @Public()
   @ResponseMessage("Fetch job by ID")

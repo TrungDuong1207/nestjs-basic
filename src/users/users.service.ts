@@ -28,11 +28,11 @@ export class UsersService {
     return hash
   }
   async create(createUserDto: CreateUserDto, user: IUser) {
-    const isExist = this.userModel.findOne({ email: createUserDto.email });
+    const isExist = await this.userModel.findOne({ email: createUserDto.email });
     if (isExist) {
       throw new BadRequestException(`the email ${createUserDto.email} da ton tai tren he thong`);
     }
-    const hashPassword = this.getHashPassword(createUserDto.password)
+    const hashPassword = await this.getHashPassword(createUserDto.password);
     let newUser = await this.userModel.create({
       ...createUserDto,
       password: hashPassword,

@@ -52,6 +52,39 @@ export class JobsService {
         }
     }
 
+    async findAllJobHR(curentPage: number, limit: number, qs: string, user: IUser) {
+        const { filter, sort, projection, population } = aqp(qs);
+        delete filter.current;
+        delete filter.pageSize;
+
+        if (user.role && user.role.name !== "SUPER_ADMIN") {
+            filter["company.name"] = user.company.name
+        }
+
+        let offset = (+curentPage - 1) * (+limit);
+        let defaultLimit = +limit ? +limit : 10;
+        const totalItems = (await this.jobModel.find(filter)).length;
+        const totalPages = Math.ceil(totalItems / defaultLimit);
+
+        const result = await this.jobModel.find(filter)
+            .skip(offset)
+            .limit(defaultLimit)
+            // @ts-ignore: Unreachable code error
+            .sort(sort)
+            .populate(population)
+            .exec();
+
+        return {
+            meta: {
+                current: curentPage, //trang hiện tại
+                pageSize: limit, //số lượng bản ghi đã lấy
+                pages: totalPages, //tổng số trang với điều kiện query
+                total: totalItems // tổng số phần tử (số bản ghi)
+            },
+            result //kết quả query
+        }
+    }
+
     findOne(id: string) {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return new BadRequestException(`not found job with id=${id}`)

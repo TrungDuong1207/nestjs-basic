@@ -45,6 +45,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             targetEndpoint === permission.apiPath
         )
         if (targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
+        if (targetEndpoint.startsWith("/api/v1/jobs/admin")) isExist = true;
         if (!isExist && !isSKipPermission) {
             throw new ForbiddenException("bạn không có quyền để truy cập endpoint này")
         }

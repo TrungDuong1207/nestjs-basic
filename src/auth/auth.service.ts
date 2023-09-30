@@ -29,7 +29,7 @@ export class AuthService {
                     // Xử lý lỗi ở đây nếu cần
                     return null;
                 }
-    
+
                 const objUser = {
                     ...user.toObject(),
                     permissions: temp?.permissions ?? []
@@ -41,13 +41,14 @@ export class AuthService {
     }
 
     async login(user: IUser, response: Response) {
-        const { _id, name, email, role, permissions } = user;
+        const { _id, name, email, company, role, permissions } = user;
         const payload = {
             sub: "token login",
             iss: "from server",
             _id,
             name,
             email,
+            company,
             role
         };
         const refresh_token = this.createRefreshToken(payload)
@@ -116,7 +117,7 @@ export class AuthService {
                     // Xử lý lỗi ở đây nếu cần
                     return null;
                 }
-    
+
                 return {
                     access_token: this.jwtService.sign(payload),
                     user: {

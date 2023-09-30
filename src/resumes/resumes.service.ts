@@ -36,10 +36,14 @@ export class ResumesService {
     return resume;
   }
 
-  async findAll(curentPage: number, limit: number, qs: string) {
+  async findAll(curentPage: number, limit: number, qs: string, user: IUser) {
     const { filter, sort, projection, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
+
+    if (user.role && user.role.name !== "SUPER_ADMIN") {
+      filter["companyId"] = user.company._id;
+    }
 
     let offset = (+curentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
