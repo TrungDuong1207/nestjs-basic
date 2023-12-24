@@ -25,7 +25,7 @@ import { HealthModule } from './health/health.module';
       ttl: 60,
       limit: 10,
     }),
-    // MongooseModule.forRoot('mongodb+srv://trung:Trung142696!@cluster0.z5ztbaa.mongodb.net/test'),
+    // MongooseModule.forRoot('mongodb+srv://trung:Trung142696!@cluster0.z5ztbaa.mongodb.net/trungdt'),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

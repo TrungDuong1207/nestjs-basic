@@ -2,7 +2,7 @@
 #MongoDB 5.0+ requires a CPU with AVX support, => sử dụng image: mongo:4.4
 services:
   db-mongo:
-    image: mongo:6.0.6
+    image: mongo:4.4.0
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
@@ -31,4 +31,4 @@ services:
 volumes:
   mongodb:
 
-    # docker compose -p hoidanit-nest up -d
+    # docker compose -p trungdd-nest up -d
