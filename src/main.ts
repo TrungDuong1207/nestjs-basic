@@ -78,6 +78,7 @@ async function bootstrap() {
 
   await app.listen(configService.get<string>('PORT'));
 
+  //config host reload
   if (module.hot) {
     module.hot.accept();
     module.hot.dispose(() => app.close());
