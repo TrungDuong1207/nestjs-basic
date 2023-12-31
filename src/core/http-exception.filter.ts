@@ -17,7 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 // path: request.url,
 
                 error: "Payload too Large",
-                message: "File tô large customize",
+                message: "File too large customize",
                 statusCode: status
             });
     }
